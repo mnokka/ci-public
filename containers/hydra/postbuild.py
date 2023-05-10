@@ -46,7 +46,7 @@ slacktoken = "not_yet_defined"
 # ------------------------------------------------------------------------
 def perror(txt, code=1):
     channel=ghaf-build
-    mytoken=xoxb-1365182781681-5066343583492-vTznjo2NBzqIr1yynUjECZSB
+    mytoken=YOUR_SLACK_APP_TOKEN
     print(txt, file=sys.stderr)
     if (SLACKING=="ON"):
         slack(channel,txt,mytoken)
