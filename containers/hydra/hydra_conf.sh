@@ -9,10 +9,12 @@
 
 # We have no sed to easily use template
 
+  # echo "  command = POSTBUILD_SERVER=${1} python3 /setup/postbuild.py"
+
 (
   echo "<runcommand>"
   echo "  job = *:*:*"
-  echo "  command = POSTBUILD_SERVER=${1} python3 /setup/postbuild.py"
+  echo "  command = POSTBUILD_SERVER=${1} /setup/postbuild.py"
   echo "</runcommand>"
   echo "max_output_size = 8589934393;"
 ) > /setup/hydra.conf

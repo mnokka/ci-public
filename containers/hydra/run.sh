@@ -14,6 +14,9 @@ pg_ctl start -D /home/hydra/db
 export LOGNAME="hydra"
 export HYDRA_DATA="/home/hydra/db"
 export HYDRA_CONFIG="/setup/hydra.conf"
+# use own slackapp token, this is fictional 
+export SLACKTOKEN=xoxb-1365182781681-5066343583492-vTznjo2NBzqIr1yynUjECZSB 
+
 hydra-server &
 GC_DONT_GC="true" hydra-evaluator &
 hydra-notify &

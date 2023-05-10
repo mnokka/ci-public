@@ -1,4 +1,10 @@
-#!/usr/bin/env pipenv-shebang
+#!/usr/bin/env nix-shell
+#!nix-shell -i python3 -p "python3.withPackages(ps: [ ps.slackclient ])"
+#
+#
+
+
+
 # ------------------------------------------------------------------------
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: 2023 Tero Tervala <tero.tervala@unikie.com>
@@ -10,12 +16,18 @@
 # Creates build information json file and a symbolic link to the image file
 # with human understandable name.
 # ------------------------------------------------------------------------
+
+# de/activate Slack messaging possibility (ON/OFF). See Readme for needed configurations in Slack application
+# TBD dockerfile 
+SLACKING="ON"
+
 import sys
 import json
 import os
 import tempfile
 import subprocess
-
+if (SLACKING=="ON"):
+    import slack    
 
 # ------------------------------------------------------------------------
 # Global variables
@@ -24,6 +36,7 @@ imagefn = "nixos.img"
 nixstore = "nix-store"
 linksuffix = "-nixos.img"
 infosuffix = "-build-info.json"
+slacktoken = "not_yet_defined"
 
 
 # ------------------------------------------------------------------------
@@ -32,8 +45,30 @@ infosuffix = "-build-info.json"
 # code = optional exit code
 # ------------------------------------------------------------------------
 def perror(txt, code=1):
+    channel=ghaf-build
+    mytoken=xoxb-1365182781681-5066343583492-vTznjo2NBzqIr1yynUjECZSB
     print(txt, file=sys.stderr)
+    if (SLACKING=="ON"):
+        slack(channel,txt,mytoken)
     sys.exit(code)
+
+# ------------------------------------------------------------------------
+# Prints an error message to chosen Slack channel
+# slackchannel = Slack channel (configured and app installed in Slack)
+# slackmessage = Message to be printed
+# slacktoken = Slack provied token for application usage (got vie env variable, global)
+# ------------------------------------------------------------------------
+def slack(slackchannel,slackmessage,slacktoken):
+    if (SLACKING=="ON"):
+            
+        try:
+            client = slack.WebClient(token=slacktoken)
+            client.chat_postMessage(channel=slackchannel, text=slackmessage)
+
+        except Exception as e:
+            print(("Slacking failed! Check your channel name?, error: %s" % e))
+            sys.exit(1)
+    
 
 # ------------------------------------------------------------------------
 # Add given path to nix store
@@ -70,6 +105,8 @@ def main(argv: list[str]):
     global nixstore
     global linksuffix
     global infosuffix
+    if (SLACKING):
+        global slacktoken
 
     # HYDRA_JSON is set by Hydra to point to build information .json file
     jsonfn = os.getenv("HYDRA_JSON")
@@ -93,6 +130,13 @@ def main(argv: list[str]):
     # Allow override of the default info file suffix
     infosuffix = os.getenv("POSTBUILD_INFOSUFFIX", infosuffix)
 
+    #if (SLACKING=="ON"):
+    #    if 'SLACKTOKEN' in os.environ:
+    #        slacktoken=(os.environ['SLACKTOKEN'])
+    #    else:
+    #        perror("Slacking activated but no SLACKTOKEN env variable found. Not able to Slack this error")
+        
+
     # Load build information
     with open(jsonfn) as jsonf:
         binfo = json.load(jsonf)
@@ -100,6 +144,8 @@ def main(argv: list[str]):
     # Check status of the build, we are interested only in finished builds
     if binfo['buildStatus'] != 0 or binfo['finished'] != True or binfo['event'] != "buildFinished":
         perror("Unexpected build status")
+    else: 
+        perror ("OK build status")
 
     # Find output path
     outp = None

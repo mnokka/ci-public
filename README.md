@@ -16,3 +16,6 @@ For Slack messaging usage (information, found errors to certain slack channel)
 <br>
 <br>
 3) Activate use Slack messaging env variable: **export SLACK="on"**
+<br>
+<br>
+In case Docker based builder (hydra) is used, modify Dockerfile accordingly (TBD)
